@@ -1,0 +1,566 @@
+/*
+ * Linkroom. Everything derives from Obsidian's theme variables; the only colour
+ * that can be hard-coded is the owner's custom link colour, set from code as
+ * --lr-link. No borders on the page: only the gear popover has one.
+ */
+
+.view-content.lr-view-content {
+	padding: 0;
+	overflow: hidden;
+}
+
+.lr-root {
+	--lr-columns: 2;
+	--lr-font-family: var(--font-interface);
+	--lr-font-size: var(--font-ui-medium, 15px);
+	--lr-link: var(--interactive-accent);
+	--lr-link-text: var(--text-accent, var(--interactive-accent));
+	--lr-underline-thickness: 1px;
+	--lr-row-gap: 0.9rem;
+	--lr-max-lines: 1;
+	--lr-pad-top: 3rem;
+	--lr-pad-x: 2rem;
+	--lr-col-gap: 2.5rem;
+	--lr-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+	--lr-hairline: var(--background-modifier-border);
+	--lr-hairline: color-mix(in srgb, var(--text-faint) 55%, transparent);
+
+	position: relative;
+	box-sizing: border-box;
+	height: 100%;
+	overflow-y: auto;
+	padding: var(--lr-pad-top) var(--lr-pad-x) 4rem;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-family: var(--lr-font-family);
+	font-size: var(--lr-font-size);
+}
+
+/* The top padding stays tall enough for the gear to sit above the full-width search field. */
+.is-phone .lr-root {
+	--lr-pad-top: 3rem;
+	--lr-pad-x: 1rem;
+	--lr-col-gap: 1.5rem;
+	padding-bottom: 3rem;
+}
+
+/* Two classes so it beats any single-class display rule below. */
+.lr-root .lr-hidden {
+	display: none;
+}
+
+.lr-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.lr-probe {
+	display: none;
+}
+
+.lr-probe-link {
+	color: var(--lr-link-text);
+}
+
+.lr-probe-bg {
+	color: var(--background-primary);
+}
+
+.lr-probe-theme-accent {
+	color: var(--interactive-accent);
+}
+
+/* ---- Gear and popover ---------------------------------------------------- */
+
+/* A zero-height sticky strip pulled up into the padding keeps the gear in the corner while scrolling. */
+.lr-gear-wrap {
+	position: sticky;
+	/* Sticky offsets count from inside the scroller's padding, so cancel it to reach the corner. */
+	top: calc(-1 * var(--lr-pad-top));
+	z-index: 10;
+	height: 0;
+	margin-top: calc(-1 * var(--lr-pad-top));
+	margin-right: calc(-1 * var(--lr-pad-x));
+	margin-bottom: var(--lr-pad-top);
+}
+
+.lr-gear {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+	color: var(--text-faint);
+	transition: color 150ms var(--lr-ease);
+}
+
+.lr-gear:hover,
+.lr-gear[aria-expanded="true"],
+.is-mobile .lr-gear {
+	color: var(--text-muted);
+}
+
+/* Frosted, like macOS popovers (D-46); solid where backdrop-filter is missing. */
+.lr-popover {
+	position: absolute;
+	top: 2.5rem;
+	right: 0.75rem;
+	box-sizing: border-box;
+	min-width: 15rem;
+	max-width: calc(100% - 1.5rem);
+	padding: 0.6rem;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 12px;
+	box-shadow: var(--shadow-l);
+	font-family: var(--font-interface);
+	font-size: var(--font-ui-small);
+	z-index: 10;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(4px);
+	transition: opacity 160ms var(--lr-ease), transform 160ms var(--lr-ease), visibility 0s linear 160ms;
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+	.lr-popover {
+		background: color-mix(in srgb, var(--background-secondary) 78%, transparent);
+		border-color: color-mix(in srgb, var(--background-modifier-border) 70%, transparent);
+		-webkit-backdrop-filter: blur(20px) saturate(1.6);
+		backdrop-filter: blur(20px) saturate(1.6);
+	}
+}
+
+.lr-popover.is-open {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+	transition: opacity 160ms var(--lr-ease), transform 160ms var(--lr-ease);
+}
+
+.lr-pop-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.3rem 0.25rem;
+}
+
+.lr-pop-gap {
+	height: 0.4rem;
+}
+
+.lr-seg {
+	display: flex;
+	gap: 0.15rem;
+}
+
+.lr-seg .lr-seg-btn {
+	min-width: 1.9rem;
+	height: auto;
+	padding: 0.2rem 0.45rem;
+	background: transparent;
+	box-shadow: none;
+	border-radius: 6px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	transition: background-color 150ms var(--lr-ease), color 150ms var(--lr-ease);
+}
+
+.lr-seg .lr-seg-btn:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.lr-seg .lr-seg-btn.is-active {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+/* ---- Search, title, headings --------------------------------------------- */
+
+.lr-content {
+	max-width: 52rem;
+	margin: 0 auto;
+}
+
+.lr-search {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	max-width: 26rem;
+	margin: 0 auto;
+	padding: 0.4rem 0.75rem;
+	background: var(--background-modifier-hover);
+	border-radius: 10px;
+	color: var(--text-muted);
+	transition: box-shadow 150ms var(--lr-ease);
+}
+
+/* A soft accent glow instead of a border (D-46). */
+.lr-search:focus-within {
+	box-shadow: 0 0 0 3px var(--background-modifier-border-focus);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--lr-link) 25%, transparent);
+}
+
+.lr-search-icon {
+	display: flex;
+	--icon-size: var(--icon-s);
+}
+
+.lr-search .lr-search-input,
+.lr-search .lr-search-input:focus,
+.lr-search .lr-search-input:hover {
+	flex: 1;
+	min-width: 0;
+	height: auto;
+	padding: 0;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	outline: none;
+	color: var(--text-normal);
+	font-family: inherit;
+	font-size: var(--font-ui-medium);
+	/* Room for descenders (j, g, y); a zero-padding input otherwise clips them. */
+	line-height: 1.5;
+}
+
+.lr-search .lr-search-input::-webkit-search-cancel-button {
+	appearance: none;
+}
+
+.lr-search .lr-search-clear {
+	padding: 0.1rem;
+	--icon-size: var(--icon-s);
+}
+
+.lr-title {
+	margin: 2rem 0 0;
+	font-size: calc(var(--lr-font-size) * 1.6);
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	line-height: 1.25;
+	overflow-wrap: anywhere;
+}
+
+.lr-status {
+	margin-top: 2.5rem;
+	color: var(--text-muted);
+	text-align: center;
+}
+
+.lr-heading {
+	margin: 2.2rem 0 1rem;
+	color: var(--text-muted);
+	font-size: calc(var(--lr-font-size) * 0.85);
+	font-weight: 600;
+}
+
+.lr-heading-count {
+	margin-left: 0.5em;
+	color: var(--text-faint);
+	font-weight: 400;
+}
+
+.lr-section-empty {
+	color: var(--text-muted);
+}
+
+/* ---- Grid ------------------------------------------------------------------- */
+
+.lr-grid {
+	display: grid;
+	column-gap: var(--lr-col-gap);
+	row-gap: var(--lr-row-gap);
+	grid-template-columns: repeat(var(--lr-columns), minmax(0, 1fr));
+}
+
+.lr-grid-flat {
+	margin-top: 2.2rem;
+}
+
+/* The max() keeps Auto at four columns or fewer at any width (D-13). */
+.lr-cols-auto .lr-grid {
+	grid-template-columns: repeat(auto-fill, minmax(max(11rem, calc((100% - 3 * var(--lr-col-gap)) / 4)), 1fr));
+}
+
+/* Phones: more than two columns of names is unreadable (D-15). */
+.is-phone .lr-cols-3 .lr-grid,
+.is-phone .lr-cols-4 .lr-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ---- Items: shared ------------------------------------------------------------ */
+
+.lr-cell {
+	min-width: 0;
+}
+
+.lr-item {
+	display: block;
+	min-width: 0;
+	cursor: var(--cursor-link, pointer);
+	outline: none;
+	border-radius: 6px;
+}
+
+/* Touch targets of 44 px: the item padding supplies most of the row spacing on mobile. */
+.is-mobile .lr-item {
+	padding-block: 0.7rem;
+}
+
+.is-mobile .lr-grid {
+	row-gap: calc(var(--lr-row-gap) * 0.25);
+}
+
+.lr-item:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 3px;
+}
+
+.lr-line {
+	display: flex;
+	align-items: baseline;
+	min-width: 0;
+}
+
+/* The name carries every effect, so lines stop at the ellipsis. */
+.lr-name {
+	flex: 0 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	line-height: 1.5;
+	color: var(--text-normal);
+	text-decoration: none;
+	transition: color 150ms var(--lr-ease), text-decoration-color 150ms var(--lr-ease), background-size 180ms var(--lr-ease);
+}
+
+.lr-wrap .lr-name {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: var(--lr-max-lines);
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* Aliases give way before the name when space runs out. */
+.lr-aliases {
+	flex: 0 100000 auto;
+	min-width: 0;
+	margin-left: 0.6em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--text-muted);
+	font-size: 0.9em;
+}
+
+.lr-folder {
+	margin-top: 0.1em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--text-muted);
+	font-size: 0.85em;
+}
+
+.lr-folder-same .lr-folder {
+	color: var(--text-normal);
+}
+
+/* Chevron for Sky link and Soft tile: decorative, space reserved so nothing shifts. */
+.lr-style-apple .lr-line::after,
+.lr-style-tile .lr-line::after {
+	content: "\203A";
+	flex: none;
+	margin-left: 0.3em;
+	color: var(--lr-link-text);
+	opacity: 0;
+	transform: translateX(-2px);
+	transition: opacity 180ms var(--lr-ease), transform 180ms var(--lr-ease);
+}
+
+/* ---- Hairline (default) -------------------------------------------------------- */
+
+/* Two background lines: a faint one at rest, an accent one that draws in on hover. */
+.lr-style-hairline .lr-name {
+	padding-bottom: 0.1em;
+	background-image:
+		linear-gradient(var(--lr-link), var(--lr-link)),
+		linear-gradient(var(--lr-hairline), var(--lr-hairline));
+	background-repeat: no-repeat;
+	background-position: 0 100%, 0 100%;
+	background-size: 0% var(--lr-underline-thickness), 100% 1px;
+}
+
+/* Clamped boxes only get a background line under the last line, so wrapping uses a real underline. */
+.lr-wrap.lr-style-hairline .lr-name {
+	padding-bottom: 0;
+	background-image: none;
+	text-decoration-line: underline;
+	text-decoration-color: var(--lr-hairline);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.28em;
+}
+
+/* ---- Sky link ------------------------------------------------------------------ */
+
+.lr-style-apple .lr-name {
+	color: var(--lr-link-text);
+	text-decoration-line: underline;
+	text-decoration-color: transparent;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.22em;
+}
+
+/* A link colour too pale to read as text falls back to the normal text colour (D-48). */
+.lr-style-apple.lr-link-pale .lr-name {
+	color: var(--text-normal);
+}
+
+.is-mobile .lr-style-apple .lr-line::after {
+	display: none;
+}
+
+/* ---- Soft tile ------------------------------------------------------------------- */
+
+/* Padding with a matching negative margin: the text sits exactly where the other styles put it. */
+.lr-style-tile .lr-item {
+	padding: 0.3rem 0.5rem;
+	margin: -0.3rem -0.5rem;
+	border-radius: 8px;
+	transition: background-color 150ms var(--lr-ease);
+}
+
+.is-mobile .lr-style-tile .lr-item {
+	padding-block: 0.7rem;
+	margin-block: 0;
+}
+
+.is-mobile .lr-style-tile .lr-line::after {
+	opacity: 1;
+	transform: none;
+	color: var(--text-faint);
+}
+
+/* ---- Hover, focus, press ------------------------------------------------------------ */
+
+/* Hover only where a pointer can hover, so taps on phones do not leave items stuck "hovered". */
+@media (hover: hover) {
+	.lr-style-hairline .lr-item:hover .lr-name {
+		color: var(--lr-link-text);
+		background-size: 100% calc(var(--lr-underline-thickness) + 1px), 100% 1px;
+	}
+
+	.lr-wrap.lr-style-hairline .lr-item:hover .lr-name,
+	.lr-style-apple .lr-item:hover .lr-name {
+		text-decoration-color: var(--lr-link);
+	}
+
+	.lr-style-apple .lr-item:hover .lr-line::after,
+	.lr-style-tile .lr-item:hover .lr-line::after {
+		opacity: 1;
+		transform: none;
+	}
+
+	.lr-style-tile .lr-item:hover {
+		background: var(--background-modifier-hover);
+	}
+
+	.lr-style-tile .lr-item:hover .lr-name {
+		color: var(--lr-link-text);
+	}
+}
+
+.lr-style-hairline .lr-item:focus-visible .lr-name,
+.lr-style-hairline .lr-item:active .lr-name {
+	color: var(--lr-link-text);
+	background-size: 100% calc(var(--lr-underline-thickness) + 1px), 100% 1px;
+}
+
+.lr-wrap.lr-style-hairline .lr-item:focus-visible .lr-name,
+.lr-wrap.lr-style-hairline .lr-item:active .lr-name,
+.lr-style-apple .lr-item:focus-visible .lr-name,
+.lr-style-apple .lr-item:active .lr-name {
+	text-decoration-color: var(--lr-link);
+}
+
+.lr-style-apple .lr-item:focus-visible .lr-line::after,
+.lr-style-tile .lr-item:focus-visible .lr-line::after {
+	opacity: 1;
+	transform: none;
+}
+
+.lr-style-tile .lr-item:focus-visible {
+	background: var(--background-modifier-hover);
+	outline-offset: 0;
+}
+
+.lr-style-tile .lr-item:active {
+	background: var(--background-modifier-active-hover);
+}
+
+.lr-style-tile .lr-item:focus-visible .lr-name,
+.lr-style-tile .lr-item:active .lr-name {
+	color: var(--lr-link-text);
+}
+
+/* ---- Unresolved: the same in every style, and never reacts --------------------------- */
+
+.lr-root .lr-item.is-unresolved {
+	cursor: default;
+	background: none;
+}
+
+.lr-root .lr-item.is-unresolved .lr-name {
+	padding-bottom: 0;
+	color: var(--text-faint);
+	background-image: none;
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+	text-decoration-color: var(--text-faint);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.28em;
+}
+
+.lr-root .lr-item.is-unresolved .lr-line::after {
+	content: none;
+}
+
+/* ---- Search dropdown rows (Obsidian's suggestion popover) ------------------------------ */
+
+.lr-suggest-title,
+.lr-suggest-path {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.lr-suggest-alias {
+	margin-left: 0.6em;
+	color: var(--text-muted);
+	font-size: 0.9em;
+}
+
+.lr-suggest-path {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lr-root *,
+	.lr-root *::after,
+	.lr-popover,
+	.lr-popover.is-open {
+		transition: none;
+		animation: none;
+	}
+}
