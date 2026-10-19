@@ -1,6 +1,6 @@
 {
   "name": "linkroom",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Browse the notes linked to and from the active note on a calm, full-page grid.",
   "main": "main.js",
   "type": "module",

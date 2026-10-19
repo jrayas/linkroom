@@ -1,7 +1,7 @@
 {
 	"id": "linkroom",
 	"name": "Linkroom",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"minAppVersion": "1.13.4",
 	"description": "Browse the notes linked to and from the active note on a calm, full-page grid.",
 	"author": "Anthirayas",
