@@ -204,7 +204,6 @@
 
 /* A soft accent glow instead of a border (D-46). */
 .lr-search:focus-within {
-	box-shadow: 0 0 0 3px var(--background-modifier-border-focus);
 	box-shadow: 0 0 0 3px color-mix(in srgb, var(--lr-link) 25%, transparent);
 }
 
@@ -276,8 +275,7 @@
 
 .lr-grid {
 	display: grid;
-	column-gap: var(--lr-col-gap);
-	row-gap: var(--lr-row-gap);
+	gap: var(--lr-row-gap) var(--lr-col-gap);
 	grid-template-columns: repeat(var(--lr-columns), minmax(0, 1fr));
 }
 
@@ -330,7 +328,7 @@
 	min-width: 0;
 }
 
-/* The name carries every effect, so lines stop at the ellipsis. */
+/* The name carries the colour; its inline text carries the lines (below). */
 .lr-name {
 	flex: 0 1 auto;
 	min-width: 0;
@@ -339,8 +337,20 @@
 	white-space: nowrap;
 	line-height: 1.5;
 	color: var(--text-normal);
-	text-decoration: none;
-	transition: color 150ms var(--lr-ease), text-decoration-color 150ms var(--lr-ease), background-size 180ms var(--lr-ease);
+	transition: color 150ms var(--lr-ease);
+}
+
+/*
+ * Every line under a name is a background on this inline element, so each wrapped
+ * line gets its own line, as wide as its text, and lines stop at the ellipsis.
+ */
+.lr-name-text {
+	padding-bottom: 0.12em;
+	background-repeat: no-repeat;
+	background-position: 0 100%, 0 100%;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+	transition: background-size 180ms var(--lr-ease), --lr-sky-line 150ms var(--lr-ease);
 }
 
 .lr-wrap .lr-name {
@@ -390,35 +400,31 @@
 
 /* ---- Hairline (default) -------------------------------------------------------- */
 
-/* Two background lines: a faint one at rest, an accent one that draws in on hover. */
-.lr-style-hairline .lr-name {
-	padding-bottom: 0.1em;
+/* Two lines: a faint one at rest, an accent one that draws in on hover. */
+.lr-style-hairline .lr-name-text {
 	background-image:
 		linear-gradient(var(--lr-link), var(--lr-link)),
 		linear-gradient(var(--lr-hairline), var(--lr-hairline));
-	background-repeat: no-repeat;
-	background-position: 0 100%, 0 100%;
 	background-size: 0% var(--lr-underline-thickness), 100% 1px;
-}
-
-/* Clamped boxes only get a background line under the last line, so wrapping uses a real underline. */
-.lr-wrap.lr-style-hairline .lr-name {
-	padding-bottom: 0;
-	background-image: none;
-	text-decoration-line: underline;
-	text-decoration-color: var(--lr-hairline);
-	text-decoration-thickness: 1px;
-	text-underline-offset: 0.28em;
 }
 
 /* ---- Sky link ------------------------------------------------------------------ */
 
+/* A registered colour so the underline can fade in. */
+@property --lr-sky-line {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
+}
+
 .lr-style-apple .lr-name {
 	color: var(--lr-link-text);
-	text-decoration-line: underline;
-	text-decoration-color: transparent;
-	text-decoration-thickness: 1px;
-	text-underline-offset: 0.22em;
+}
+
+.lr-style-apple .lr-name-text {
+	padding-bottom: 0.06em;
+	background-image: linear-gradient(var(--lr-sky-line), var(--lr-sky-line));
+	background-size: 100% 1px;
 }
 
 /* A link colour too pale to read as text falls back to the normal text colour (D-48). */
@@ -457,12 +463,14 @@
 @media (hover: hover) {
 	.lr-style-hairline .lr-item:hover .lr-name {
 		color: var(--lr-link-text);
+	}
+
+	.lr-style-hairline .lr-item:hover .lr-name-text {
 		background-size: 100% calc(var(--lr-underline-thickness) + 1px), 100% 1px;
 	}
 
-	.lr-wrap.lr-style-hairline .lr-item:hover .lr-name,
-	.lr-style-apple .lr-item:hover .lr-name {
-		text-decoration-color: var(--lr-link);
+	.lr-style-apple .lr-item:hover .lr-name-text {
+		--lr-sky-line: var(--lr-link);
 	}
 
 	.lr-style-apple .lr-item:hover .lr-line::after,
@@ -483,14 +491,16 @@
 .lr-style-hairline .lr-item:focus-visible .lr-name,
 .lr-style-hairline .lr-item:active .lr-name {
 	color: var(--lr-link-text);
+}
+
+.lr-style-hairline .lr-item:focus-visible .lr-name-text,
+.lr-style-hairline .lr-item:active .lr-name-text {
 	background-size: 100% calc(var(--lr-underline-thickness) + 1px), 100% 1px;
 }
 
-.lr-wrap.lr-style-hairline .lr-item:focus-visible .lr-name,
-.lr-wrap.lr-style-hairline .lr-item:active .lr-name,
-.lr-style-apple .lr-item:focus-visible .lr-name,
-.lr-style-apple .lr-item:active .lr-name {
-	text-decoration-color: var(--lr-link);
+.lr-style-apple .lr-item:focus-visible .lr-name-text,
+.lr-style-apple .lr-item:active .lr-name-text {
+	--lr-sky-line: var(--lr-link);
 }
 
 .lr-style-apple .lr-item:focus-visible .lr-line::after,
@@ -521,14 +531,14 @@
 }
 
 .lr-root .lr-item.is-unresolved .lr-name {
-	padding-bottom: 0;
 	color: var(--text-faint);
-	background-image: none;
-	text-decoration-line: underline;
-	text-decoration-style: dotted;
-	text-decoration-color: var(--text-faint);
-	text-decoration-thickness: 1px;
-	text-underline-offset: 0.28em;
+}
+
+/* A dotted line: 2 px dots, 2 px gaps. */
+.lr-root .lr-item.is-unresolved .lr-name-text {
+	padding-bottom: 0.12em;
+	background-image: repeating-linear-gradient(to right, var(--text-faint) 0 2px, transparent 2px 4px);
+	background-size: 100% 1px;
 }
 
 .lr-root .lr-item.is-unresolved .lr-line::after {

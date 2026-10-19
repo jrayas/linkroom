@@ -31,7 +31,8 @@ function renderItem(grid: HTMLElement, item: Item, index: number, input: RenderI
 	const labelled = [nameId];
 
 	const line = el.createDiv({ cls: 'lr-line' });
-	line.createSpan({ cls: 'lr-name', text: item.name, attr: { id: nameId } });
+	// The inner span is inline so the underline follows each wrapped line.
+	line.createSpan({ cls: 'lr-name', attr: { id: nameId } }).createSpan({ cls: 'lr-name-text', text: item.name });
 	if (input.viewState.showAliases && item.aliases.length > 0) {
 		line.createSpan({ cls: 'lr-aliases', text: item.aliases.join(' · ') });
 	}

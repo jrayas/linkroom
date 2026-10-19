@@ -93,7 +93,7 @@ await check('2 no border on the page', `
 `, []);
 await check('2 unresolved item is dotted and disabled', `
 	const u = L.item('Currency Notes');
-	return [u.classList.contains('is-unresolved'), u.getAttribute('aria-disabled'), getComputedStyle(u.querySelector('.lr-name')).textDecorationStyle];
+	return [u.classList.contains('is-unresolved'), u.getAttribute('aria-disabled'), getComputedStyle(u.querySelector('.lr-name-text')).backgroundImage.startsWith('repeating-linear-gradient') ? 'dotted' : 'solid'];
 `, [true, 'true', 'dotted']);
 
 // 3. Following and pinning
@@ -378,8 +378,8 @@ await check('9 unresolved hidden setting', `
 const nameRect = (name) => c.evaluate(`(() => { const r = window.__lr.item(${JSON.stringify(name)}).querySelector('.lr-name').getBoundingClientRect(); return { x: r.x + 10, y: r.y + r.height / 2 }; })()`);
 const hoverAt = async (p) => { await c.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: p.x, y: p.y }); await new Promise((r) => setTimeout(r, 350)); };
 const away = async () => { await c.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 }); await new Promise((r) => setTimeout(r, 350)); };
-const probe = (name) => `(() => { const it = window.__lr.item(${JSON.stringify(name)}); const n = it.querySelector('.lr-name'); const cs = getComputedStyle(n); const a = getComputedStyle(it.querySelector('.lr-line'), '::after');
-	return { colour: cs.color, bgSize: cs.backgroundSize, deco: cs.textDecorationColor, chevron: a.content, chevronOpacity: a.opacity, tile: getComputedStyle(it).backgroundColor, text: getComputedStyle(document.body).color }; })()`;
+const probe = (name) => `(() => { const it = window.__lr.item(${JSON.stringify(name)}); const n = it.querySelector('.lr-name'); const cs = getComputedStyle(n); const t = getComputedStyle(n.querySelector('.lr-name-text')); const a = getComputedStyle(it.querySelector('.lr-line'), '::after');
+	return { colour: cs.color, bgSize: t.backgroundSize, deco: t.getPropertyValue('--lr-sky-line'), chevron: a.content, chevronOpacity: a.opacity, tile: getComputedStyle(it).backgroundColor, text: getComputedStyle(document.body).color }; })()`;
 for (const style of ['hairline', 'apple', 'tile']) {
 	await c.evaluate(`(async () => { const L = window.__lr; await L.open('Trip Plan.md'); await L.showLinkroom(); L.store().updateSettings({ linkStyle: '${style}' }); await L.w(250); return 1; })()`);
 	await away();
@@ -397,7 +397,7 @@ for (const style of ['hairline', 'apple', 'tile']) {
 await check('11 unresolved looks the same in every style and has no chevron', `
 	const out = [];
 	for (const s of ['hairline', 'apple', 'tile']) { L.store().updateSettings({ linkStyle: s }); await L.w(150);
-		const it = L.item('Currency Notes'); out.push([getComputedStyle(it.querySelector('.lr-name')).textDecorationStyle, getComputedStyle(it.querySelector('.lr-line'), '::after').content]); }
+		const it = L.item('Currency Notes'); out.push([getComputedStyle(it.querySelector('.lr-name-text')).backgroundImage.startsWith('repeating-linear-gradient') ? 'dotted' : 'solid', getComputedStyle(it.querySelector('.lr-line'), '::after').content]); }
 	L.store().resetAll(); await L.w(150);
 	return out;
 `, [['dotted', 'none'], ['dotted', 'none'], ['dotted', 'none']]);
@@ -411,7 +411,7 @@ await check('11 underline thickness row only for Hairline; pale link colour fall
 await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
 await check('11 reduced motion removes transitions', `
 	await L.w(100);
-	return [getComputedStyle(L.item('Flight Details').querySelector('.lr-name')).transitionDuration, getComputedStyle(document.querySelector('.lr-root .lr-popover')).transitionDuration];
+	return [getComputedStyle(L.item('Flight Details').querySelector('.lr-name')).transitionDuration, getComputedStyle(L.item('Flight Details').querySelector('.lr-name-text')).transitionDuration, getComputedStyle(document.querySelector('.lr-root .lr-popover')).transitionDuration];
 `, (got) => got.every((d) => d.split(',').every((x) => parseFloat(x) === 0)));
 await c.send('Emulation.setEmulatedMedia', { features: [] });
 
