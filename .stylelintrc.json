@@ -1,0 +1,10 @@
+{
+	"plugins": ["stylelint-no-unsupported-browser-features"],
+	"rules": {
+		"declaration-block-no-duplicate-properties": true,
+		"plugin/no-unsupported-browser-features": [true, {
+			"browsers": ["chrome 138"],
+			"severity": "warning"
+		}]
+	}
+}
